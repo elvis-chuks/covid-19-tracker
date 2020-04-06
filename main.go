@@ -78,7 +78,7 @@ func Register(w http.ResponseWriter, r *http.Request){
 
 		json.NewEncoder(w).Encode(res)
 	}else{
-		
+
 		res := Resp{"status":"success"}
 
 		json.NewEncoder(w).Encode(res)
@@ -97,11 +97,11 @@ func main(){
 	// file, err := thoth.Init("log")
 
 
-	// err := file.Serve("/logs","12345")
+	err := file.Serve("/logs","12345")
 
-	// if err != nil {
-	// 	file.Log(err)
-	// }
+	if err != nil {
+		file.Log(err)
+	}
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		fmt.Println("application running on port 8080")
