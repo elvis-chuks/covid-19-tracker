@@ -3,14 +3,12 @@ package main
 import (
 	"fmt"
 	// "log"
-	"errors"
+	// "errors"
 	"net/http"
 	"database/sql"
 	"encoding/json"
 
 	_ "github.com/lib/pq"
-	// "github.com/gorilla/mux"
-	"github.com/ichtrojan/thoth"
 	"golang.org/x/crypto/bcrypt"
 
 )
@@ -33,9 +31,6 @@ type User struct{
 	Password string `json:"password,omitempty"`
 }
 
-var (
-	file, _ = thoth.Init("log")
-)
 
 func InitDB() *sql.DB{
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s"+" password=%s dbname=%s sslmode=disable",
@@ -90,8 +85,6 @@ func Register(w http.ResponseWriter, r *http.Request){
 
 	if err != nil{
 
-		file.Log(errors.New(err.Error()))
-
 		res := Resp{"status":"error","msg":err.Error()}
 
 		json.NewEncoder(w).Encode(res)
@@ -104,25 +97,55 @@ func Register(w http.ResponseWriter, r *http.Request){
 
 }
 
+// login endpoint
 
+func Login(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("content-type","application/json")
+	if r.Method == "GET"{
+		var user User
+
+		_ = json.NewDecoder(r.Body).Decode(&user)
+
+		db := InitDB()
+		defer db.Close()
+
+		query := fmt.Sprintf("SELECT email,firstname,lastname,password from users where email = '%s'",user.Email)
+
+		rows, err := db.Query(query)
+
+		if err != nil{
+			fmt.Println(err)
+
+		}else{
+			defer rows.Close()
+			var email,firstname,lastname,password string
+			for rows.Next(){
+				rows.Scan(&email,&firstname,&lastname,&password)
+			}
+			if CheckPasswordHash(user.Password,password)== true {
+				fmt.Println("correct password")
+				res := Resp{"status":"success","user_details":Resp{"firstname":firstname,"lastname":lastname}}
+				json.NewEncoder(w).Encode(res)
+			}else{
+				fmt.Println("Incorrect password")
+				res := Resp{"status":"failed","msg":"Incorrect user credentials"}
+				json.NewEncoder(w).Encode(res)
+			}
+		}
+
+
+	}else{
+		http.Error(w, "Method Not Allowed",400)
+	}
+
+}
 
 func main(){
 
-	// router := mux.NewRouter()
-
 	http.HandleFunc("/register",Register)
-
-	// file, err := thoth.Init("log")
-
-
-	err := file.Serve("/logs","12345")
-
-	if err != nil {
-		file.Log(err)
-	}
+	http.HandleFunc("/login",Login)
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
-		fmt.Println("application running on port 8080")
-		file.Log(err)
+		fmt.Println(err)
 	}
 }

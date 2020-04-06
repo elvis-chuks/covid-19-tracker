@@ -5,18 +5,20 @@
 ## api endpoints
 /v1/register
 request body: 
-{
-    `api_key`:`key`,
-    `phone_number`:,
-    `email`:,
-    `password`:,
-}
+```  
+    {
+        `firstname`:,
+        `email`:,
+        `password`:,
+    }
+```
 
 response :
- {
-     status:succesful,
-     msg:user registration succesful
- }
+    ``` 
+    {
+        `status`:`success`,
+    }
+ ```
 
 error :
     {
