@@ -11,6 +11,7 @@ import (
 	_ "github.com/lib/pq"
 	// "github.com/gorilla/mux"
 	"github.com/ichtrojan/thoth"
+	"golang.org/x/crypto/bcrypt"
 
 )
 
@@ -52,6 +53,17 @@ func InitDB() *sql.DB{
 
 }
 
+
+func HashPassword(password string) (string, error) {
+    bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+    return string(bytes), err
+}
+
+func CheckPasswordHash(password, hash string) bool {
+    err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+    return err == nil
+}
+
 func Register(w http.ResponseWriter, r *http.Request){
 
 	w.Header().Set("content-type","application/json")
@@ -65,10 +77,16 @@ func Register(w http.ResponseWriter, r *http.Request){
 	db := InitDB()
 	defer db.Close()
 
-	query := fmt.Sprintf(
-	"INSERT INTO users(firstname,lastname,email,password) VALUES('%s','%s','%s','%s');",user.FirstName,user.LastName,user.Email,user.Password)
+	pash, err := HashPassword(user.Password)
+	
+	if err != nil{
+		fmt.Println(err)
+	}
 
-	_, err := db.Exec(query)
+	query := fmt.Sprintf(
+	"INSERT INTO users(firstname,lastname,email,password) VALUES('%s','%s','%s','%s');",user.FirstName,user.LastName,user.Email,pash)
+
+	_, err = db.Exec(query)
 
 	if err != nil{
 
