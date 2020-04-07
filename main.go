@@ -47,7 +47,7 @@ func InitDB() *sql.DB{
 		panic(err)
 	}
 
-	query := fmt.Sprintf("CREATE TABLE IF NOT EXISTS users(id SERIAL, firstname VARCHAR,lastname VARCHAR,password VARCHAR)")
+	query := fmt.Sprintf("CREATE TABLE IF NOT EXISTS users(id SERIAL,email VARCHAR, firstname VARCHAR,lastname VARCHAR,password VARCHAR)")
 	// defer db.Close()
 
 	_, err = db.Exec(query)
