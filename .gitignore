@@ -2,3 +2,4 @@
 t.go
 # main.py
 *.py
+.txt

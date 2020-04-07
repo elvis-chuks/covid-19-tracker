@@ -43,6 +43,8 @@ func InitDB() *sql.DB{
 
 	db, err := sql.Open("postgres",os.Getenv("DATABASE_URL"))
 
+	// db, err := sql.Open("postgres","postgres://urfaimyxtxvoov:d0dd7b17a756c0ff932f6db616711b04600fe4d3dde32449b279cfe7b8e83e75@ec2-18-210-51-239.compute-1.amazonaws.com:5432/d88051tuei2207")
+
 	if err != nil{
 		panic(err)
 	}
@@ -156,7 +158,15 @@ func main(){
 	http.HandleFunc("/v1/register",Register)
 	http.HandleFunc("/v1/login",Login)
 
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	fmt.Println("this is port",port)
+	port = fmt.Sprintf(":"+"%s",port)
+	fmt.Println(port)
+
+	if err := http.ListenAndServe(port, nil); err != nil {
 		fmt.Println(err)
 	}
 }
