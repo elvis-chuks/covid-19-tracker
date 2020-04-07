@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	// "log"
+	"os"
 	// "errors"
 	"net/http"
 	"database/sql"
@@ -13,13 +13,15 @@ import (
 
 )
 
-const (
-	host = "localhost"
-	port = 5432
-	user = "postgres"
-	password = "@123elvischuks"
-	dbname = "covidtracker"
-)
+
+
+// const (
+// 	host = "localhost"
+// 	port = 5432
+// 	user = "postgres"
+// 	password = "@123elvischuks"
+// 	dbname = "covidtracker"
+// )
 var db *sql.DB
 
 type Resp map[string]interface{}
@@ -33,17 +35,26 @@ type User struct{
 
 
 func InitDB() *sql.DB{
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s"+" password=%s dbname=%s sslmode=disable",
-	host,port,user,password,dbname)
+	// psqlInfo := fmt.Sprintf("host=%s port=%d user=%s"+" password=%s dbname=%s sslmode=disable",
+	// host,port,user,password,dbname)
 
-	db, err := sql.Open("postgres",psqlInfo)
+
+	// db, err := sql.Open("postgres",psqlInfo)
+
+	db, err := sql.Open("postgres",os.Getenv("DATABASE_URL"))
 
 	if err != nil{
 		panic(err)
 	}
 
+	query := fmt.Sprintf("CREATE TABLE IF NOT EXISTS users(id SERIAL, firstname VARCHAR,lastname VARCHAR,password VARCHAR)")
 	// defer db.Close()
 
+	_, err = db.Exec(query)
+
+	if err != nil {
+		panic(err)
+	}
 	return db
 
 }
@@ -142,8 +153,8 @@ func Login(w http.ResponseWriter, r *http.Request){
 
 func main(){
 
-	http.HandleFunc("/register",Register)
-	http.HandleFunc("/login",Login)
+	http.HandleFunc("/v1/register",Register)
+	http.HandleFunc("/v1/login",Login)
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		fmt.Println(err)
