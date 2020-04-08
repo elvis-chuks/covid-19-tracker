@@ -56,7 +56,7 @@ fetch(url,{
     body:JSON.stringify({
         firstname:"elvis",
         lastname:'chuks',
-        email:"celvischuks@gmal.com",
+        email:"name@mail.com",
         password:"12345"
     })
 })
@@ -87,7 +87,7 @@ var url = "http://localhost:8080/v1/login";
 fetch(url,{
     method:"POST",
     body:JSON.stringify({
-        email:"celvischuks@gmal.com",
+        email:"name@mail.com",
         password:"12345"
     })
 })
@@ -118,7 +118,7 @@ var url = "http://localhost:8080/v1/symptoms";
 fetch(url,{
     method:"GET",
     body:JSON.stringify({
-        email:"celvischuks@gmal.com",
+        email:"name@mail.com",
     })
 })
 .then(resp => resp.json())
@@ -145,7 +145,7 @@ var url = "http://localhost:8080/v1/symptoms";
 fetch(url,{
     method:"POST",
     body:JSON.stringify({
-        email:"celvischuks@gmal.com",
+        email:"name@mail.com",
         day:"7",
         month:"April",
         year:"2020",
