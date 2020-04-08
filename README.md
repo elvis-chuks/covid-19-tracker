@@ -214,6 +214,11 @@ fetch(url,{
 })
 
 ```
+
+## Deployment
+
+This api is currently live at [https://gdgcovidtracker.herokuapp.com/](https://gdgcovidtracker.herokuapp.com/)
+
 <!-- ### And coding style tests
 
 Explain what these tests test and why
