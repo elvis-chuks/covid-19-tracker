@@ -153,9 +153,9 @@ go mod tidy
 * [Maven](https://maven.apache.org/) - Dependency Management
 * [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds -->
 
-## Contributing
+<!-- ## Contributing
 
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
+Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us. -->
 
 <!-- ## Versioning
 
@@ -163,7 +163,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Authors
 
-* **Elvis Chuks** - *Initial work* - [Elvis-Chuks](https://github.com/elvis-chuks)
+* **Elvis Chuks** - *Initial work* - [Github](https://github.com/elvis-chuks) [Twitter](https://twitter.com/elvischuks15)
 
 <!-- See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project. -->
 
