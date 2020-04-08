@@ -14,14 +14,6 @@ import (
 )
 
 
-
-const (
-	host = "localhost"
-	port = 5432
-	user = "postgres"
-	password = "@123elvischuks"
-	dbname = "covidtracker"
-)
 var db *sql.DB
 
 type Resp map[string]interface{}
@@ -50,20 +42,12 @@ type Question struct {
 
 
 func InitDB() *sql.DB{
-	// psqlInfo := fmt.Sprintf("host=%s port=%d user=%s"+" password=%s dbname=%s sslmode=disable",
-	// host,port,user,password,dbname)
-
-
-	// db, err := sql.Open("postgres",psqlInfo)
 
 	db, err := sql.Open("postgres",os.Getenv("DATABASE_URL"))
-
-	// db, err := sql.Open("postgres","postgres://urfaimyxtxvoov:d0dd7b17a756c0ff932f6db616711b04600fe4d3dde32449b279cfe7b8e83e75@ec2-18-210-51-239.compute-1.amazonaws.com:5432/d88051tuei2207")
 
 	if err != nil{
 		panic(err)
 	}
-
 	
 	query := fmt.Sprintf("CREATE TABLE IF NOT EXISTS users(id SERIAL,email VARCHAR PRIMARY KEY, firstname VARCHAR,lastname VARCHAR,password VARCHAR)")
 	
@@ -143,7 +127,6 @@ func Register(w http.ResponseWriter, r *http.Request){
 
 }
 
-// login endpoint
 
 func Login(w http.ResponseWriter, r *http.Request){
 	w.Header().Set("content-type","application/json")
@@ -220,7 +203,7 @@ func Symptoms(w http.ResponseWriter, r *http.Request){
 			json.NewEncoder(w).Encode(res)
 		}
 	}else if r.Method == "GET"{
-		// get shit from the table
+
 		db := InitDB()
 		defer db.Close()
 
@@ -233,7 +216,7 @@ func Symptoms(w http.ResponseWriter, r *http.Request){
 			http.Error(w, "{'status':'error','msg':'Internal Server Error in query'}",500)
 		}else{
 			defer rows.Close()
-			// [{}]
+
 			var respList []Resp
 
 			for rows.Next(){
