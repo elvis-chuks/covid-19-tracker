@@ -106,7 +106,7 @@ fetch(url,{
 This endpoint is used add user test results or receive test results
 it accepts a json payload in the request body
 
-*for get method*
+*for GET method*
 ```json
 {
     "email":"name@mail.com"
@@ -119,7 +119,88 @@ fetch(url,{
     method:"GET",
     body:JSON.stringify({
         email:"celvischuks@gmal.com",
-        password:"12345"
+    })
+})
+.then(resp => resp.json())
+.then(data =>{
+    if(data.status == "success"){
+        ...
+    }
+})
+.catch(error => {
+    console.log(error)
+})
+
+```
+
+*for POST method*
+```json
+{
+    "email":"name@mail.com"
+}
+```
+### Example Usage
+```js
+var url = "http://localhost:8080/v1/symptoms";
+fetch(url,{
+    method:"POST",
+    body:JSON.stringify({
+        email:"celvischuks@gmal.com",
+        day:"7",
+        month:"April",
+        year:"2020",
+        theDate:"2020-04-07",
+        score:"1",
+        prognosis:"You might be stressed, Rest a bit",
+    })
+})
+.then(resp => resp.json())
+.then(data =>{
+    if(data.status == "success"){
+        ...
+    }
+})
+.catch(error => {
+    console.log(error)
+})
+
+```
+
+### Questions
+This endpoint is used add user test results or receive test results
+it accepts a json payload in the request body
+
+### Example Usage
+```js
+var url = "http://localhost:8080/v1/questions";
+fetch(url)
+.then(resp => resp.json())
+.then(data =>{
+    if(data.status == "success"){
+        ...
+    }
+})
+.catch(error => {
+    console.log(error)
+})
+
+```
+
+*for POST method*
+```json
+{
+    "question":"Are you a Girl?",
+    "point":"1"
+}
+```
+### Example Usage
+```js
+var url = "http://localhost:8080/v1/symptoms";
+fetch(url,{
+    method:"POST",
+    body:JSON.stringify({
+        question:"Are you a Girl?",
+        point:"1"
     })
 })
 .then(resp => resp.json())
@@ -163,7 +244,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Authors
 
-* **Elvis Chuks** - *Initial work* - [Github](https://github.com/elvis-chuks) [Twitter](https://twitter.com/elvischuks15)
+* **Elvis Chuks** - [Github](https://github.com/elvis-chuks) [Twitter](https://twitter.com/elvischuks15)
 
 <!-- See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project. -->
 
