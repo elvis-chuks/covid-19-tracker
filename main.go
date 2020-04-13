@@ -254,6 +254,8 @@ func Questions(w http.ResponseWriter, r *http.Request){
 
 		db := InitDB()
 
+		defer db.Close()
+
 		query := fmt.Sprintf("INSERT INTO questions(question,point) VALUES('%s','%s')",question.Question,question.Point)
 
 		_, err := db.Exec(query)
@@ -269,6 +271,8 @@ func Questions(w http.ResponseWriter, r *http.Request){
 		
 	}else if r.Method == "GET"{
 		db := InitDB()
+
+		defer db.Close()
 
 		query := fmt.Sprintf("SELECT question,point from questions")
 
