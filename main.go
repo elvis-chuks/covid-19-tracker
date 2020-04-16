@@ -3,16 +3,18 @@ package main
 import (
 	"fmt"
 	"os"
-	// "time"
+	"time"
 	"net/http"
 	"database/sql"
 	"encoding/json"
 
 	_ "github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
+	"github.com/dgrijalva/jwt-go"
 
 )
 
+var jwtKey = []byte("purevibes")
 
 var db *sql.DB
 
@@ -33,11 +35,17 @@ type Symptom struct {
 	Score string `json:"score,omitempty"`
 	Prognosis string `json:"prognosis,omitempty"`
 	Date string `json:"theDate,omitempty"`
+	Token string `json:"token,omitempty"`
 }
 
 type Question struct {
 	Question string `json:"question,omitempty"`
 	Point string `json:"point,omitempty"`
+}
+
+type Claims struct {
+	Email string `json:"email"`
+	jwt.StandardClaims
 }
 
 
@@ -157,7 +165,33 @@ func Login(w http.ResponseWriter, r *http.Request){
 			}
 			if CheckPasswordHash(user.Password,password)== true {
 				fmt.Println("correct password")
-				res := Resp{"status":"success","user_details":Resp{"firstname":firstname,"lastname":lastname}}
+
+				expirationTime := time.Now().Add(120 * time.Minute)
+
+				claims := &Claims{
+					Email: email,
+					StandardClaims: jwt.StandardClaims{
+						ExpiresAt: expirationTime.Unix(),
+					},
+				}
+
+				token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+
+				tokenString,err := token.SignedString(jwtKey)
+
+				if err != nil{
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+
+				http.SetCookie(w, &http.Cookie{
+					Name: "token",
+					Value: tokenString,
+					Expires: expirationTime,
+				})
+
+				res := Resp{"status":"success","token":tokenString,"user_details":Resp{"firstname":firstname,"lastname":lastname}}
 				json.NewEncoder(w).Encode(res)
 			}else{
 				fmt.Println("Incorrect password")
@@ -183,11 +217,47 @@ func Symptoms(w http.ResponseWriter, r *http.Request){
 	
 	_ = json.NewDecoder(r.Body).Decode(&symptom)
 	
-	fmt.Println(symptom)
+	if symptom.Token == ""{
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Resp{"status":"failed","msg":"Bad Request"})
+		return
+	}
+
+	tknStr := symptom.Token
+
+	fmt.Println("tknstr",tknStr)
+
+	claims := &Claims{}
+
+	tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error){
+		return jwtKey, nil
+	})
+	if err != nil{
+		if err ==jwt.ErrSignatureInvalid {
+			fmt.Println("unauthorized 2")
+			w.WriteHeader(http.StatusUnauthorized)
+
+			json.NewEncoder(w).Encode(Resp{"status":"failed","msg":"Unauthorized"})
+			return
+		}
+		fmt.Println("bad req 2")
+		
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Resp{"status":"failed","msg":"Token expired"})
+		return
+	}
+
+	if !tkn.Valid {
+		fmt.Println("unauthorized 3")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(Resp{"status":"failed","msg":"Invalid token"})
+		return
+	}
+	fmt.Println(claims.Email)
 	if r.Method == "POST"{
 		
 		query := fmt.Sprintf("INSERT INTO symptoms(email,day,month,year,date,score,prognosis) VALUES('%s','%s','%s','%s','%s','%s','%s')",
-		symptom.Email,symptom.Day,symptom.Month,symptom.Year,symptom.Date,symptom.Score,symptom.Prognosis)
+		claims.Email,symptom.Day,symptom.Month,symptom.Year,symptom.Date,symptom.Score,symptom.Prognosis)
 		
 		
 		db := InitDB()
@@ -207,13 +277,13 @@ func Symptoms(w http.ResponseWriter, r *http.Request){
 		db := InitDB()
 		defer db.Close()
 
-		query := fmt.Sprintf("SELECT day,month,year,date,score,prognosis FROM symptoms WHERE email = '%s'",symptom.Email)
+		query := fmt.Sprintf("SELECT day,month,year,date,score,prognosis FROM symptoms WHERE email = '%s'",claims.Email)
 
 		rows,err := db.Query(query)
 		
 		if err != nil {
 			fmt.Println(err)
-			http.Error(w, "{'status':'error','msg':'Internal Server Error in query'}",500)
+			http.Error(w, `{'status':'error','msg':'Internal Server Error in query'}`,500)
 		}else{
 			defer rows.Close()
 
@@ -233,7 +303,7 @@ func Symptoms(w http.ResponseWriter, r *http.Request){
 			json.NewEncoder(w).Encode(res)
 		}
 	}else{
-		http.Error(w, "{'status':'error','msg':'Method Not Allowed'}",400)
+		http.Error(w, `{'status':'error','msg':'Method Not Allowed'}`,400)
 	}
 }
 
