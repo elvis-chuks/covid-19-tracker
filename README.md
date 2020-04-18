@@ -35,6 +35,7 @@ go build main.go
 - Login */v1/login*
 - Symptoms */v1/symptoms*
 - Questions */v1/questions/*
+- Refresh */v1/refresh*
 
 ### Register
 This endpoint is used to register users into the system
@@ -73,7 +74,7 @@ fetch(url,{
 
 ### Login
 This endpoint is used to validate already registered users
-which accepts a json payload in the request body
+which accepts a json payload in the request body and returns a json payload containing a token
 
 ```json
 {
@@ -109,7 +110,7 @@ it accepts a json payload in the request body
 *for GET method*
 ```json
 {
-    "email":"name@mail.com"
+    "token":"12ef987tgahsdj.ef76rgtdhfuio.shgjak;/.."
 }
 ```
 ### Example Usage
@@ -118,7 +119,7 @@ var url = "http://localhost:8080/v1/symptoms";
 fetch(url,{
     method:"GET",
     body:JSON.stringify({
-        email:"name@mail.com",
+        token:"12ef987tgahsdj.ef76rgtdhfuio.shgjak;/.."
     })
 })
 .then(resp => resp.json())
@@ -136,7 +137,7 @@ fetch(url,{
 *for POST method*
 ```json
 {
-    "email":"name@mail.com"
+    "token":"12ef987tgahsdj.ef76rgtdhfuio.shgjak;/.."
 }
 ```
 ### Example Usage
@@ -145,7 +146,7 @@ var url = "http://localhost:8080/v1/symptoms";
 fetch(url,{
     method:"POST",
     body:JSON.stringify({
-        email:"name@mail.com",
+        token:"12ef987tgahsdj.ef76rgtdhfuio.shgjak;/.."
         day:"7",
         month:"April",
         year:"2020",
@@ -214,6 +215,10 @@ fetch(url,{
 })
 
 ```
+
+## Refresh
+
+***pass the token returned at login to the refresh endpoint when the token has expired to generate a new token***
 
 ## Deployment
 

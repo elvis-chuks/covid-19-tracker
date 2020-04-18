@@ -50,7 +50,6 @@ type Claims struct {
 
 
 func InitDB() *sql.DB{
-
 	db, err := sql.Open("postgres",os.Getenv("DATABASE_URL"))
 
 	if err != nil{
@@ -373,12 +372,91 @@ func Questions(w http.ResponseWriter, r *http.Request){
 	}
 }
 
+
+func Refresh(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type","application/json")
+	setupResponse(&w,r)
+	if (*r).Method == "OPTIONS" {
+		return
+	}
+	
+	var symptom Symptom
+	
+	_ = json.NewDecoder(r.Body).Decode(&symptom)
+	
+	if symptom.Token == ""{
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Resp{"status":"failed","msg":"Bad Request"})
+		return
+	}
+
+	tknStr := symptom.Token
+
+	fmt.Println("tknstr",tknStr)
+	claims := &Claims{}
+	tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtKey, nil
+	})
+	if !tkn.Valid {
+		fmt.Println("invalid token")
+		w.WriteHeader(http.StatusUnauthorized)
+		res  := Resp{"status":"failed","msg":"invalid token"}
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			w.WriteHeader(http.StatusUnauthorized)
+			res  := Resp{"status":"failed","msg":"invalid token signature"}
+			json.NewEncoder(w).Encode(res)
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		res  := Resp{"status":"failed","msg":"error parsing token"}
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+	
+
+	// We ensure that a new token is not issued until enough time has elapsed
+	// In this case, a new token will only be issued if the old token is within
+	// 30 seconds of expiry. Otherwise, return a bad request status
+	// if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 30*time.Minute {
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	res  := Resp{"status":"failed","msg":"too soon"}
+	// 	json.NewEncoder(w).Encode(res)
+	// 	return
+	// }
+
+	// Now, create a new token for the current use, with a renewed expiration time
+	expirationTime := time.Now().Add(5 * time.Minute)
+	claims.ExpiresAt = expirationTime.Unix()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Set the new token as the users `session_token` cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:    "session_token",
+		Value:   tokenString,
+		Expires: expirationTime,
+	})
+
+	res  := Resp{"status":"success","token":tokenString}
+	json.NewEncoder(w).Encode(res)
+}
+
+
 func main(){
 
 	http.HandleFunc("/v1/register",Register)
 	http.HandleFunc("/v1/login",Login)
 	http.HandleFunc("/v1/symptoms",Symptoms)
 	http.HandleFunc("/v1/questions",Questions)
+	http.HandleFunc("/v1/refresh",Refresh)
 
 	port := os.Getenv("PORT")
 	if port == "" {
